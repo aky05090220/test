@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>世界計畫活動劇情中文翻譯整理</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script src="./config.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <div id="app">
+    <el-button @click="postTest">Post Test</el-button>
+    <div class="search-box">
+      <span class="e-title">世界計畫活動劇情中文翻譯整理</span>
+      <el-form>
+        <el-form-item label="限定">
+          <el-switch active-color="#FF4079" v-model="limitedSwitch" @change="searchConditionChange"></el-switch>
+        </el-form-item>
+
+      </el-form>
+    </div>
+    <div class="main-content">
+      <div class="box box-left">
+        <div class="e-front-cover" v-for="(item, index) in eventData" :key="index" @click="clickEventCover(item)">
+          <el-tooltip :content="item.tooltip">
+            <img :class="{'e-current': item.id === currentEvent.id}" class="e-pic" :src="item.frontCover" alt="">
+          </el-tooltip>
+        </div>
+      </div>
+      <div class="box box-right">
+        <div>
+          <span v-if="currentEvent.id" class="e-num">{{currentEvent.id}}</span>
+          <span class="e-title">{{currentEvent.eventTitle}}</span>
+        </div>
+        <a :href="currentEvent.link" target="_blank">
+          <img style="width:100%" :src="currentEvent.frontCover" alt="" :title="currentEvent.link">
+        </a>
+        <div class="cards-box">
+          <img v-for="(card, cIndex) in currentEventCards" :key="'card_'+cIndex" @click="clickCard(card)"
+            :class="{'e-current': currentCard === card}" class="card-pic" :src="filterCardPic(card)" alt="">
+        </div>
+        <div class="btn-box" v-if="currentCard">
+          <span class="e-title" style="width: 100px;">{{currentCard.character}}</span>
+          <a :href="currentCard.link1">
+            <el-button round class="card-link-btn">前 篇</el-button>
+          </a>
+          <a :href="currentCard.link2">
+            <el-button round class="card-link-btn">後 篇</el-button>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script>
+    function jqAjax(data){
+      return $.ajax(data)
+    }
+    var vm = new Vue({
+      el: '#app',
+      data() {
+        return {
+          eventData: eventDataConfig,
+          cardsData: cardsDataConfig,
+          currentEvent: undefined,
+          currentEventCards: [],
+          currentCard: undefined,
+
+          limitedSwitch: false,
+        }
+      },
+      created() {
+        this.eventData.forEach(mst => {
+          let dtl = this.cardsData.find(d => d.mstId === mst.id)
+          if (dtl) {
+            mst.child = dtl.cards
+            let charList = dtl.cards.map(c => c.character)
+            mst.tooltip = charList.join()
+          } else {
+            mst.child = []
+          }
+        })
+        this.currentEvent = this.eventData[0]
+        this.clickEventCover(this.currentEvent)
+      },
+      methods: {
+        clickEventCover(item) {
+          this.currentEvent = item
+          this.currentEventCards = this.currentEvent.child
+          this.currentCard = undefined
+        },
+        clickCard(card) {
+          this.currentCard = card
+        },
+        filterCardPic(card) {
+          if (this.currentCard === card && card.pic2) {
+            return card.pic2
+          } else {
+            return card.pic1
+          }
+        },
+        searchConditionChange() {
+          let config = eventDataConfig
+          // 限定活
+          if (this.limitedSwitch) {
+            config = eventDataConfig.filter(t => t.limited)
+          }
+          this.eventData = config
+        },
+        postTest() {
+          
+            let data = {
+              type: "post",
+              data: {
+                "id": 50,
+                "limited": false,
+                "eventTitle": "あの日、空は遠かった",
+                "frontCover": "https://static.wikia.nocookie.net/projectsekai/images/1/19/That_Day%2C_the_Sky_Was_Far_Away_Event_Banner.png/revision/latest/scale-to-width-down/600?cb=20220217152736",
+                "link": "https://www.bilibili.com/video/BV1nr4y1r7ij?spm_id_from=333.999.0.0",
+                "tooltip": ""
+              },
+              url: "https://script.google.com/macros/s/AKfycbynCCF972epuowlywvHY1NusiPMYpGKLhXkLq8P_ftwB9ZbfHs/exec" // 填入網路應用程式網址
+            }
+            jqAjax(data)
+        }
+      }
+    })
+  </script>
+</body>
+
+</html>
